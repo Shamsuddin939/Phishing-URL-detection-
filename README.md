@@ -1,6 +1,5 @@
 # Phishing URL Detection 
-![alt text](image.png)
-![alt text](image-1.png)
+
 
 ## Table of Content
   * [Introduction](#introduction)
