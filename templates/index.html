@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Advanced Phishing URL Detection using Machine Learning">
+    <meta name="keywords" content="phishing url, cyber security, machine learning, classifier, python">
+    <meta name="author" content="SHAIKH SHAMSUDDIN">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <link href="static/styles.css" rel="stylesheet">
+    
+    <title>Phishing URL Detection</title>
+    
+    <style>
+        .safe-result {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .warning-result {
+            color: #856404;
+            background-color: #fff3cd;
+            border-color: #ffeaa7;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .danger-result {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .hidden {
+            display: none;
+        }
+        .result-box {
+            margin-top: 30px;
+        }
+        .url-display {
+            word-break: break-all;
+            font-family: monospace;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .stats {
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+        .button-safe {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .button-warning {
+            background: #ffc107;
+            color: #212529;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .button-danger {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-4">
+                <h1 class="display-4">🔍 Phishing URL Detection</h1>
+                <p class="lead">Advanced machine learning based website safety analysis</p>
+            </div>
+
+            <!-- Input Form -->
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form action="/" method="post">
+                        <div class="form-group">
+                            <label for="url"><strong>Enter Website URL:</strong></label>
+                            <input type="text" class="form-control form-control-lg" 
+                                   name="url" id="url" placeholder="https://example.com" 
+                                   value="{{ url if url else '' }}" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg btn-block">
+                            🔍 Analyze Website Safety
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            {% if url %}
+            <div class="result-box">
+                <!-- URL Display -->
+                <div class="url-display mt-4">
+                    <strong>Analyzed URL:</strong><br>
+                    <a href="{{ url }}" target="_blank" rel="noopener noreferrer">{{ url }}</a>
+                </div>
+
+                <!-- Error Message -->
+                {% if error %}
+                <div class="alert alert-danger mt-3">
+                    <h4>❌ Error</h4>
+                    <p>{{ error }}</p>
+                </div>
+                {% endif %}
+
+                <!-- Results -->
+                {% if result %}
+                <div id="safeResult" class="safe-result {% if result.final_prediction != -1 %}hidden{% endif %}">
+                    <h3>✅ SAFE WEBSITE</h3>
+                    <p>This website is <strong>{{ result.safety_score }}% safe</strong> to use.</p>
+                    <p class="stats">
+                        Phishing Probability: {{ result.phishing_probability }}% | 
+                        Suspicion Level: {{ result.suspicion_ratio }}% |
+                        Confidence: {{ result.confidence }}%
+                    </p>
+                    <button class="button-safe" onclick="openWebsite('{{ url }}', 'safe')">
+                        Continue to Website
+                    </button>
+                </div>
+
+                <div id="warningResult" class="warning-result {% if result.final_prediction != 0 %}hidden{% endif %}">
+                    <h3>⚠️ SUSPICIOUS WEBSITE</h3>
+                    <p>This website is <strong>{{ result.safety_score }}% safe</strong>. Use with extreme caution!</p>
+                    <p class="stats">
+                        Phishing Probability: {{ result.phishing_probability }}% | 
+                        Suspicion Level: {{ result.suspicion_ratio }}% |
+                        Suspicious Features: {{ result.suspicious_features }}/{{ result.total_features }}
+                    </p>
+                    <button class="button-warning" onclick="openWebsite('{{ url }}', 'warning')">
+                        Proceed with Caution
+                    </button>
+                </div>
+
+                <div id="dangerResult" class="danger-result {% if result.final_prediction != 1 %}hidden{% endif %}">
+                    <h3>❌ PHISHING WEBSITE DETECTED</h3>
+                    <p>This website is <strong>{{ result.phishing_probability }}% likely phishing</strong>. Avoid using!</p>
+                    <p class="stats">
+                        Safety Score: {{ result.safety_score }}% | 
+                        Suspicion Level: {{ result.suspicion_ratio }}% |
+                        Suspicious Features: {{ result.suspicious_features }}/{{ result.total_features }}
+                    </p>
+                    <button class="button-danger" onclick="openWebsite('{{ url }}', 'danger')">
+                        I Understand the Risk
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Footer -->
+            <div class="text-center mt-5">
+                <p class="text-muted">© 2025 SHAIKH SHAMSUDDIN | Phishing Detection</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+
+<script>
+function openWebsite(url, riskLevel) {
+    const messages = {
+        'safe': 'You are navigating to a safe website.',
+        'warning': '⚠️ WARNING: This website may be suspicious. Proceed with caution.',
+        'danger': '❌ DANGER: This website is likely phishing! Are you sure you want to continue?'
+    };
+
+    if (riskLevel === 'danger') {
+        if (!confirm(messages.danger)) {
+            return false;
+        }
+    } else if (riskLevel === 'warning') {
+        if (!confirm(messages.warning)) {
+            return false;
+        }
+    } else {
+        alert(messages.safe);
+    }
+    
+    window.open(url, '_blank', 'noopener,noreferrer');
+    return true;
+}
+
+// Auto-focus on URL input
+document.addEventListener('DOMContentLoaded', function() {
+    const urlInput = document.getElementById('url');
+    if (urlInput) {
+        urlInput.focus();
+    }
+});
+</script>
+
+<script>
+/* AUTO PHISHING BLOCK SYSTEM */
+document.addEventListener("DOMContentLoaded", function () {
+
+    let prediction = "{{ result.final_prediction if result else '' }}";
+    let url = "{{ url }}";
+
+    if (prediction == "1") {
+        alert("🚫 ACCESS BLOCKED!\nPhishing Website Detected.\nOpening this website is not allowed.");
+
+        let dangerBtn = document.querySelector(".button-danger");
+        if (dangerBtn){
+            dangerBtn.disabled = true;
+            dangerBtn.innerText = "Website Blocked";
+            dangerBtn.style.background = "gray";
+            dangerBtn.style.cursor = "not-allowed";
+        }
+        return;
+    }
+
+    if (prediction == "0") {
+        alert("⚠️ Suspicious Website Detected!\nProceed carefully.");
+    }
+
+    if (prediction == "-1" && url !== "") {
+        console.log("Safe website detected");
+    }
+});
+</script>
+
+</body>
+</html>
